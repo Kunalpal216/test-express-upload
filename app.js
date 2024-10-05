@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:5173",
+  origin: "http://158.101.194.135:5173",
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
@@ -31,7 +31,7 @@ app.get("/health", (req, res) => {
 app.post("/upload", upload.single("file"), (req, res) => {
   const { buffer, originalname } = req.file;
   console.log(buffer, originalname);
-  const writeStream = fs.createWriteStream(originalname, { flags: "a" });
+  const writeStream = fs.createWriteStream(path.join(__dirname, "/files/", originalname), { flags: "a" });
   writeStream.write(buffer);
   writeStream.end();
 
@@ -48,7 +48,10 @@ app.post("/upload", upload.single("file"), (req, res) => {
 
 app.get("/download/:filePath", (req, res) => {
   console.log(req.params);
-  res.download(path.join(__dirname, req.params.filePath), "test.pdf");
+  let absolutePath = path.join(__dirname, "/files/", req.params.filePath);
+  let fileName = path.basename(absolutePath);
+  if(fs.existsSync(absolutePath)) res.download(absolutePath, fileName);
+  else res.json({"success" : "false"});
   // const file = fs.readFileSync(path);
   // var stat = fs.statSync(file);
   // res.writeHeader(200, { "Content-Length": stat.size });
